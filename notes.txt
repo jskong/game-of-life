@@ -1,0 +1,4 @@
+notes
+
+-edge cases / corners
+-inputs - enforce same length of each list
