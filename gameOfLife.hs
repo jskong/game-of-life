@@ -1,3 +1,8 @@
+-- test matrices
+let m1 = [[False, True, True],[True, True, True],[False, False, False]]
+
+
+-- Conway's Game of life
 play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
 play matrix numTurns = play (runTurn matrix) (numTurns - 1)
@@ -18,9 +23,6 @@ applyRules c0 n =
        then 1
        else 0
 
--- countAdjacents:: [[Bool]] -> Int -> Int -> IO Int
-countAdjacents oMatrix x y = do
- let adjLocs = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
- let withinBorder = [(x, y) | (x, y) <- adjLocs, (\(x, y) -> if (y < 0 || y > ((length oMatrix)-1) || x < 0 || x > ((length (oMatrix!!0))-1)) then False else True) (x,y)]
- let aliveAdjs = [(x, y) | (x, y) <- withinBorder, (\(x, y) -> oMatrix!!y!!x) (x,y)]
- return (length aliveAdjs)
+countAliveAdjacents oMatrix x y = length (filter
+  (\(x, y) -> (y >= 0  && y < (length oMatrix) && x >= 0 && x < (length (oMatrix!!0)) && oMatrix!!y!!x))
+  [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)])
