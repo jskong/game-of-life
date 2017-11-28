@@ -1,8 +1,8 @@
-play :: [[Int]] -> Int -> [[Int]]
+play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
 play matrix numTurns = play (runTurn matrix) (numTurns - 1)
 
-runTurn :: [[Int]] -> [[Int]]
+runTurn :: [[Bool]] -> [[Bool]]
 runTurn matrix = []
   -- for each cell c0 in the matrix:
   -- count the number of live neighbours n
