@@ -26,10 +26,10 @@ applyRules c0 n =
        else False
 
 countAliveAdjacents :: [[Bool]] -> Int -> Int -> Int
-countAliveAdjacents oMatrix x y = length (filter
-  (\(x, y) -> (y >= 0  && y < (length oMatrix) && x >= 0 && x < (length (oMatrix!!0)) && oMatrix!!y!!x))
-  [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)])
+countAliveAdjacents oMatrix x y = length (filter (isValidCoord oMatrix) (adjacentCoordsOf x y))
 
 
 -- Helpers
 enumerate = zip [0..]
+adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
+isValidCoord matrix = (\(x, y) -> (y >= 0  && y < (length matrix) && x >= 0 && x < (length (matrix!!0)) && matrix!!y!!x))
