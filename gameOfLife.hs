@@ -17,3 +17,10 @@ applyRules c0 n =
   else if (n == 2 || n == 3)
        then 1
        else 0
+
+-- countAdjacents:: [[Bool]] -> Int -> Int -> IO Int
+countAdjacents oMatrix x y = do
+ let adjLocs = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
+ let withinBorder = [(x, y) | (x, y) <- adjLocs, (\(x, y) -> if (y < 0 || y > ((length oMatrix)-1) || x < 0 || x > ((length (oMatrix!!0))-1)) then False else True) (x,y)]
+ let aliveAdjs = [(x, y) | (x, y) <- withinBorder, (\(x, y) -> oMatrix!!y!!x) (x,y)]
+ return (length aliveAdjs)
