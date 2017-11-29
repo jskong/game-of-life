@@ -14,17 +14,17 @@ m3 = [[True,False,True,False,True,False,True,True,False,False,True,True,True,Tru
 -- Conway's Game of life
 play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
-play matrix numTurns = play (unsafePerformIO (printMatrix (runTurn matrix))) (numTurns - 1)
+play matrix numTurns = play (runTurn (unsafePerformIO (printMatrix matrix))) (numTurns - 1)
 
 printMatrix matrix = do
   putStrLn $ toString (turnToPrintable matrix)
-  threadDelay 1000000
+  threadDelay 1000000 -- 1 second
   return matrix
 
 turnToPrintable matrix =
   map (\row ->
     map (\cellStatus ->
-      if cellStatus then 'X' else '-')
+      if cellStatus then '+' else '-')
     row)
   matrix
 
