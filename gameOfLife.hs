@@ -5,7 +5,31 @@ m1 = [[False, True, True],[True, True, True],[False, False, False]]
 -- Conway's Game of life
 play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
-play matrix numTurns = play (runTurn matrix) (numTurns - 1)
+play matrix numTurns = play (runTurnAndPrint matrix) (numTurns - 1)
+
+runTurnAndPrint matrix = do
+  nextMatrix <- runTurn matrix
+  putStrLn $ printMe (turnToPrintable m1)
+  -- printMatrix nextMatrix
+  -- nextMatrix
+  -- let printAbleMatrix = turnToPrintable matrix
+  -- printMatrix printAbleMatrix
+  return nextMatrix
+
+-- printThis = do
+turnToPrintable matrix =
+  map (\row ->
+    map (\cellStatus ->
+      if cellStatus then 'X' else 'O')
+    row)
+  matrix
+
+printMatrix matrix = do
+  map (\r -> show r) matrix
+  return ()
+
+printMe xs = foldr (++) "" (map (\str -> str ++ "\n") xs)
+
 
 runTurn :: [[Bool]] -> [[Bool]]
 runTurn matrix =
