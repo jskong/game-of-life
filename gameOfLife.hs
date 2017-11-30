@@ -2,49 +2,56 @@ import System.IO.Unsafe
 import Control.Concurrent
 import Data.String
 
-main = runConwaysGameOfLife
+main = playWithInput
 
 -- Conway's Game of life
-runConwaysGameOfLife :: IO ()
-runConwaysGameOfLife = do
-  putStrLn "Input the game board"
-  boardStr <- getLine
-  let board = (read boardStr :: [[Bool]])
-  putStrLn "Input the number of generations to run"
-  generationsStr <- getLine
-  let generations = (read generationsStr :: Int)
-  gameLoopAction board generations 0
-  putStrLn ((show generations) ++ " generations completed")
+play :: [[Bool]] -> Int -> IO ()
+play board numGenerations = startGame board numGenerations
+
+playWithInput :: IO ()
+playWithInput = do
+  board <- getInputFor "game board" (\x -> True)
+  numGenerations <- getInputFor "number of generations" (>=0)
+  startGame board numGenerations
   return ()
 
-gameLoopAction :: [[Bool]] -> Int -> Int -> IO ()
-gameLoopAction matrix numTurns thisGenNum = do
+startGame :: [[Bool]] -> Int -> IO ()
+startGame board numGenerations = do
+  gameLoop board numGenerations 0
+  putStrLn ((show numGenerations) ++ " generations completed.")
+  return ()
+
+getInputFor :: Read b => [Char] -> (b -> Bool) -> IO b
+getInputFor inputType additionalCondition = do
+  let inputFail inputType = putStrLn ("Invalid " ++ inputType ++  ", try again.")
+  putStrLn ("Input the " ++ inputType ++ ": ")
+  inputStr <- getLine
+  case readMaybe inputStr of
+    Just input -> if additionalCondition input
+      then return input
+      else do
+        inputFail inputType
+        return (getInputFor inputType additionalCondition)()
+    Nothing -> do
+      inputFail inputType
+      return (getInputFor inputType additionalCondition)()
+
+gameLoop :: [[Bool]] -> Int -> Int -> IO ()
+gameLoop board numTurns thisGenNum = do
   putStrLn ("Generation: " ++ (show thisGenNum))
-  printMatrix matrix
-  let nextMatrix = runTurn matrix
+  printBoard board
+  let nextBoard = nextGeneration board
   if (numTurns > 0)
-    then gameLoopAction nextMatrix (numTurns-1) (thisGenNum+1)
+    then gameLoop nextBoard (numTurns-1) (thisGenNum+1)
     else return ()
 
-play :: [[Bool]] -> Int -> [[Bool]]
-play matrix 0 = matrix
-play matrix numTurns = play (runTurnAndPrint matrix) (numTurns-1)
-
-runTurn :: [[Bool]] -> [[Bool]]
-runTurn matrix =
+nextGeneration :: [[Bool]] -> [[Bool]]
+nextGeneration board =
   map (\(yIndex, row) ->
     map (\(xIndex, cellStatus) ->
-      applyRules cellStatus (countAliveAdjacents matrix xIndex yIndex))
+      applyRules cellStatus (countAliveAdjacents board xIndex yIndex))
     (zipWithIndex row))
-  (zipWithIndex matrix)
-
-runTurnAndPrint :: [[Bool]] -> [[Bool]]
-runTurnAndPrint matrix =
-  map (\(yIndex, row) ->
-    map (\(xIndex, cellStatus) ->
-      applyRules cellStatus (countAliveAdjacents matrix xIndex yIndex))
-    (zipWithIndex row))
-  (zipWithIndex (unsafePerformIO (printMatrix matrix)))
+  (zipWithIndex board)
 
 applyRules :: Bool -> Int -> Bool
 applyRules cellStatus numAliveAdj =
@@ -53,30 +60,37 @@ applyRules cellStatus numAliveAdj =
   else (numAliveAdj == 3)
 
 countAliveAdjacents :: [[Bool]] -> Int -> Int -> Int
-countAliveAdjacents oMatrix x y = length (filter (isValidAliveCoordOf oMatrix) (adjacentCoordsOf x y))
+countAliveAdjacents board x y = length (filter (isValidAliveCoordOf board) (adjacentCoordsOf x y))
+
+isValidAliveCoordOf :: [[Bool]] -> ((Int, Int) -> Bool)
+isValidAliveCoordOf board = (\(x, y) -> (y >= 0  && y < (length board) && x >= 0 && x < (length (board!!y)) && board!!y!!x))
+
+adjacentCoordsOf :: Int -> Int -> [(Int, Int)]
+adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
 
 -- Printing the board
-printMatrix :: [[Bool]] -> IO [[Bool]]
-printMatrix matrix = do
-  putStrLn (toString (mapStatusToCharacters matrix))
+printBoard :: [[Bool]] -> IO [[Bool]]
+printBoard board = do
+  putStrLn (toString (mapStatusToCharacters board))
   threadDelay 1000000 -- 1 second
-  return matrix
+  return board
 
 mapStatusToCharacters :: [[Bool]] -> [[Char]]
-mapStatusToCharacters matrix =
+mapStatusToCharacters board =
   map (\row ->
     map (\cellStatus ->
       if cellStatus then 'X' else '-')
     row)
-  matrix
+  board
 
 toString :: [[Char]] -> [Char]
 toString xs = foldr (++) "" (map (\str -> str ++ "\n") xs)
 
 -- Helpers
 zipWithIndex = zip [0..]
-adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
-isValidAliveCoordOf matrix = (\(x, y) -> (y >= 0  && y < (length matrix) && x >= 0 && x < (length (matrix!!y)) && matrix!!y!!x))
+readMaybe s = case reads s of
+    [(a, "")] -> Just a
+    _ -> Nothing
 
 -- Test Matrices
 m1 = [[False, True, True],[True, True, True],[False, False, False]]
