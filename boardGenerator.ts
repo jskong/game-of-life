@@ -2,18 +2,20 @@
 // Then use generateBoard(Int, Int) to get string representation of a haskell [[Bool]]
 // Copy this string value into a haskell file without the quotes and it should work
 let generateBoard = (x, y) => {
+  let numValuesInRows = Array.from(new Array(x).keys())
+  let rowCount = Array.from(new Array(y).keys())
   let matrix = []
 
-  for (let i = 0; i <= y; i++) {
+  rowCount.forEach(yIndex => {
     let values = []
-    for (let j = 0; j < x; j++) {
+    numValuesInRows.forEach(() => {
       let rand = Math.floor(Math.random() * 10) + 1
       // Change the int below to anything between 1-10. This is the chance
       // that the value will be true. Int = 6 => True = 60%, False = 40%
       values.push(rand < 6)
-    }
-    matrix[i] = values
-  }
+    })
+    matrix[yIndex] = values
+  })
 
   let printMatrix = () => {
     let finalStr = ''

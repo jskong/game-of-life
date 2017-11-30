@@ -4,7 +4,7 @@ import Control.Concurrent
 -- Conway's Game of life
 play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
-play matrix numTurns = play (runTurn (unsafePerformIO (printMatrix matrix))) (numTurns - 1)
+play matrix numTurns = play (runTurn matrix) (numTurns - 1)
 
 runTurn :: [[Bool]] -> [[Bool]]
 runTurn matrix =
@@ -12,7 +12,7 @@ runTurn matrix =
     map (\(xIndex, cellStatus) ->
       applyRules cellStatus (countAliveAdjacents matrix xIndex yIndex))
     (zipWithIndex row))
-  (zipWithIndex matrix)
+  (zipWithIndex (unsafePerformIO (printMatrix matrix)))
 
 applyRules :: Bool -> Int -> Bool
 applyRules cellStatus numAliveAdj =
@@ -34,19 +34,17 @@ mapStatusToCharacters :: [[Bool]] -> [[Char]]
 mapStatusToCharacters matrix =
   map (\row ->
     map (\cellStatus ->
-      if cellStatus then '+' else '-')
+      if cellStatus then 'X' else '-')
     row)
   matrix
 
 toString :: [[Char]] -> [Char]
 toString xs = foldr (++) "" (map (\str -> str ++ "\n") xs)
 
-
 -- Helpers
 zipWithIndex = zip [0..]
 adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
 isValidAliveCoordOf matrix = (\(x, y) -> (y >= 0  && y < (length matrix) && x >= 0 && x < (length (matrix!!y)) && matrix!!y!!x))
-
 
 -- Test Matrices
 m1 = [[False, True, True],[True, True, True],[False, False, False]]
