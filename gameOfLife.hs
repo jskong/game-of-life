@@ -6,19 +6,13 @@ main = playWithInput
 
 -- Conway's Game of life
 play :: [[Bool]] -> Int -> IO ()
-play board numGenerations = startGame board numGenerations
+play board numGenerations = gameLoop board numGenerations 0
 
 playWithInput :: IO ()
 playWithInput = do
   board <- getInputFor "game board" (\x -> True)
   numGenerations <- getInputFor "number of generations" (>=0)
-  startGame board numGenerations
-  return ()
-
-startGame :: [[Bool]] -> Int -> IO ()
-startGame board numGenerations = do
   gameLoop board numGenerations 0
-  putStrLn ((show numGenerations) ++ " generations completed.")
   return ()
 
 getInputFor :: Read b => [Char] -> (b -> Bool) -> IO b
@@ -40,10 +34,20 @@ gameLoop :: [[Bool]] -> Int -> Int -> IO ()
 gameLoop board numTurns thisGenNum = do
   putStrLn ("Generation: " ++ (show thisGenNum))
   printBoard board
-  let nextBoard = nextGeneration board
-  if (numTurns > 0)
-    then gameLoop nextBoard (numTurns-1) (thisGenNum+1)
-    else return ()
+  if allCellsDeadOn board
+    then do
+      putStrLn ("Completed on generation " ++ (show thisGenNum) ++ "/" ++ (show (thisGenNum + numTurns)) ++ " due to all cells dying.")
+      return ()
+    else do
+      threadDelay 1000000 -- 1 second
+      if (numTurns > 0)
+        then gameLoop (nextGeneration board) (numTurns-1) (thisGenNum+1)
+        else do
+          putStrLn ((show thisGenNum) ++ " generations completed.")
+          return ()
+
+allCellsDeadOn :: [[Bool]] -> Bool
+allCellsDeadOn board = foldl (\allDead row -> (all (==False) row) && allDead) True board
 
 nextGeneration :: [[Bool]] -> [[Bool]]
 nextGeneration board =
@@ -69,11 +73,10 @@ adjacentCoordsOf :: Int -> Int -> [(Int, Int)]
 adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x-1, y+1), (x, y+1), (x+1, y+1)]
 
 -- Printing the board
-printBoard :: [[Bool]] -> IO [[Bool]]
+printBoard :: [[Bool]] -> IO ()
 printBoard board = do
   putStrLn (toString (mapStatusToCharacters board))
-  threadDelay 1000000 -- 1 second
-  return board
+  return ()
 
 mapStatusToCharacters :: [[Bool]] -> [[Char]]
 mapStatusToCharacters board =
