@@ -1,6 +1,4 @@
-import System.IO.Unsafe
 import Control.Concurrent
-import Data.String
 
 main = playWithInput
 
@@ -17,17 +15,17 @@ playWithInput = do
 
 getInputFor :: Read b => [Char] -> (b -> Bool) -> IO b
 getInputFor inputType additionalCondition = do
-  let inputFail inputType = putStrLn ("Invalid " ++ inputType ++  ", try again.")
+  let inputFail = putStrLn ("Invalid " ++ inputType ++  ", try again.")
   putStrLn ("Input the " ++ inputType ++ ": ")
   inputStr <- getLine
   case readMaybe inputStr of
     Just input -> if additionalCondition input
       then return input
       else do
-        inputFail inputType
+        inputFail
         return (getInputFor inputType additionalCondition)()
     Nothing -> do
-      inputFail inputType
+      inputFail
       return (getInputFor inputType additionalCondition)()
 
 gameLoop :: [[Bool]] -> Int -> Int -> IO ()
