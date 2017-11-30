@@ -1,13 +1,45 @@
 import System.IO.Unsafe
 import Control.Concurrent
+import Data.String
+
+main = runConwaysGameOfLife
 
 -- Conway's Game of life
+runConwaysGameOfLife :: IO ()
+runConwaysGameOfLife = do
+  putStrLn "Input the game board"
+  boardStr <- getLine
+  let board = (read boardStr :: [[Bool]])
+  putStrLn "Input the number of generations to run"
+  generationsStr <- getLine
+  let generations = (read generationsStr :: Int)
+  gameLoopAction board generations 0
+  putStrLn ((show generations) ++ " generations completed")
+  return ()
+
+gameLoopAction :: [[Bool]] -> Int -> Int -> IO ()
+gameLoopAction matrix numTurns thisGenNum = do
+  putStrLn ("Generation: " ++ (show thisGenNum))
+  printMatrix matrix
+  let nextMatrix = runTurn matrix
+  if (numTurns > 0)
+    then gameLoopAction nextMatrix (numTurns-1) (thisGenNum+1)
+    else return ()
+
 play :: [[Bool]] -> Int -> [[Bool]]
 play matrix 0 = matrix
-play matrix numTurns = play (runTurn matrix) (numTurns - 1)
+play matrix numTurns = play (runTurnAndPrint matrix) (numTurns-1)
 
 runTurn :: [[Bool]] -> [[Bool]]
 runTurn matrix =
+  map (\(yIndex, row) ->
+    map (\(xIndex, cellStatus) ->
+      applyRules cellStatus (countAliveAdjacents matrix xIndex yIndex))
+    (zipWithIndex row))
+  (zipWithIndex matrix)
+
+runTurnAndPrint :: [[Bool]] -> [[Bool]]
+runTurnAndPrint matrix =
   map (\(yIndex, row) ->
     map (\(xIndex, cellStatus) ->
       applyRules cellStatus (countAliveAdjacents matrix xIndex yIndex))
@@ -26,7 +58,7 @@ countAliveAdjacents oMatrix x y = length (filter (isValidAliveCoordOf oMatrix) (
 -- Printing the board
 printMatrix :: [[Bool]] -> IO [[Bool]]
 printMatrix matrix = do
-  putStrLn $ toString (mapStatusToCharacters matrix)
+  putStrLn (toString (mapStatusToCharacters matrix))
   threadDelay 1000000 -- 1 second
   return matrix
 
