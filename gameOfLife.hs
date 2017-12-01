@@ -45,7 +45,7 @@ gameLoop board numTurns thisGenNum = do
           return ()
 
 allCellsDeadOn :: [[Bool]] -> Bool
-allCellsDeadOn board = foldl (\allDead row -> (all (==False) row) && allDead) True board
+allCellsDeadOn board = all (\row -> (all (==False) row)) board
 
 nextGeneration :: [[Bool]] -> [[Bool]]
 nextGeneration board =
