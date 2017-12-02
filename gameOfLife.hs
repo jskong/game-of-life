@@ -72,9 +72,7 @@ adjacentCoordsOf x y = [(x-1, y-1), (x, y-1), (x+1, y-1), (x-1, y), (x+1, y), (x
 
 -- Printing the board
 printBoard :: [[Bool]] -> IO ()
-printBoard board = do
-  putStrLn (toString (mapStatusToCharacters board))
-  return ()
+printBoard board = putStrLn (toString (mapStatusToCharacters board))
 
 mapStatusToCharacters :: [[Bool]] -> [[Char]]
 mapStatusToCharacters board =
