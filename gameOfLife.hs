@@ -1,4 +1,5 @@
 import Control.Concurrent
+import System.Random
 
 main = playWithInput
 
@@ -11,7 +12,15 @@ playWithInput = do
   board <- getInputFor "game board" (\x -> True)
   numGenerations <- getInputFor "number of generations" (>=0)
   gameLoop board numGenerations 0
-  return ()
+
+playGen :: Int -> Int -> Int -> Int -> IO ()
+playGen x y chanceOfTrueOutOfTen numGenerations = do
+  if (x < 0 || y < 0 || chanceOfTrueOutOfTen < 0 || chanceOfTrueOutOfTen > 10 || numGenerations <= 0)
+    then putStrLn "Invalid number of generations or board characteristics, try again."
+    else do
+      board <- generateBoard x y chanceOfTrueOutOfTen
+      gameLoop board numGenerations 0
+
 
 getInputFor :: Read b => [Char] -> (b -> Bool) -> IO b
 getInputFor inputType additionalCondition = do
@@ -35,14 +44,12 @@ gameLoop board numTurns thisGenNum = do
   if allCellsDeadOn board
     then do
       putStrLn ("Completed on generation " ++ (show thisGenNum) ++ "/" ++ (show (thisGenNum + numTurns)) ++ " due to all cells dying.")
-      return ()
     else do
       threadDelay 1000000 -- 1 second
       if (numTurns > 0)
         then gameLoop (nextGeneration board) (numTurns-1) (thisGenNum+1)
         else do
           putStrLn ((show thisGenNum) ++ " generations completed.")
-          return ()
 
 allCellsDeadOn :: [[Bool]] -> Bool
 allCellsDeadOn board = all (\row -> (all (==False) row)) board
@@ -78,12 +85,35 @@ mapStatusToCharacters :: [[Bool]] -> [[Char]]
 mapStatusToCharacters board =
   map (\row ->
     map (\cellStatus ->
-      if cellStatus then 'X' else '-')
+      if cellStatus then 'X' else '.')
     row)
   board
 
 toString :: [[Char]] -> [Char]
 toString xs = foldr (++) "" (map (\str -> str ++ "\n") xs)
+
+-- Generating boards
+generateBoard :: Int -> Int -> Int -> IO [[Bool]]
+generateBoard x y chanceOfTrueOutOfTen = buildBoard x y chanceOfTrueOutOfTen []
+
+buildBoard :: Int -> Int -> Int -> [[Bool]] -> IO [[Bool]]
+buildBoard x y chanceOfTrueOutOfTen board = do
+  thisRow <- buildRow x chanceOfTrueOutOfTen []
+  if (y > 0)
+    then do
+      return (buildBoard x (y-1) chanceOfTrueOutOfTen (board ++ [thisRow]))()
+    else do
+      return board
+
+buildRow :: Int -> Int -> [Bool] -> IO [Bool]
+buildRow num chanceOfTrueOutOfTen row = do
+  rand <- randomRIO (1, 9) :: IO Int
+  let thisBoolean = rand < chanceOfTrueOutOfTen
+  if (num > 0)
+    then do
+      return (buildRow (num-1) chanceOfTrueOutOfTen (row ++ [thisBoolean]))()
+    else do
+      return row
 
 -- Helpers
 zipWithIndex = zip [0..]
